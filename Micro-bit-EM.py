@@ -88,7 +88,8 @@ def send_key(key):
     
 while True:
     receivedMsg = radio.receive()
-    RFmessage = radio.receive()
+    if receivedMsg is None:
+        continue
     if receivedMsg:
         p_msg = parse(receivedMsg)
         
@@ -121,10 +122,7 @@ while True:
                 microbit.display.scroll(msg_r, wait=False, loop=False)
         
         if p_msg.type == "msg" and connect == True:
-            print("msg")
-        #    msg = decrypt(receivedMsg)
-        #    microbit.display.scroll(msg, wait=False, loop=True)
-    if RFmessage is None:
-        continue
+            msg_r = decrypt(p_msg.msg)
+            uart_write_request(msg_r)
 
-    uart_write_request(RFmessage)
+    
