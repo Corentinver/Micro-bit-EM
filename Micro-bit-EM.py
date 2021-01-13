@@ -7,6 +7,12 @@ radio.on()
 connect = False
 #key = "IY546G6ZAubNFiua4zhef78p4afeaZRG"
 key = ""
+uart.init(baudrate=115200, bits=8,parity=None, stop=1)
+
+def uart_write_request(request): 
+    display.set_pixel(2, 2, 5)
+    uart.write(request)
+    return True
 
 class Msg:
     def __init__(self):
@@ -82,6 +88,7 @@ def send_key(key):
     
 while True:
     receivedMsg = radio.receive()
+    RFmessage = radio.receive()
     if receivedMsg:
         p_msg = parse(receivedMsg)
         
@@ -117,3 +124,7 @@ while True:
             print("msg")
         #    msg = decrypt(receivedMsg)
         #    microbit.display.scroll(msg, wait=False, loop=True)
+    if RFmessage is None:
+        continue
+
+    uart_write_request(RFmessage)
