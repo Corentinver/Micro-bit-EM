@@ -36,6 +36,7 @@ def parse(msg):
     return parse_msg
 
 def reverse(msg, i):
+    #Inversion de l'ordre des caractères
     msg = str(msg)
     translated = ''
     while i >= 0:
@@ -45,28 +46,30 @@ def reverse(msg, i):
 
 def cipher_key(msg, key):
     result = ""
-    key_tmp = str(key)
-    while len(key) < len(msg):
-        key_tmp = str(key_tmp) + str(key)
-
-    key2 = ''
-    for i in range(len(msg)):
-        key2 += key_tmp[i]
-
+    key_tmp = key
     bin_msg = map(bin,bytearray(msg))
-    bin_key = map(bin,bytearray(key2))
-    #bin_msg = map(bin,bytearray(bytearray(b'10')))
-    #bin_msg = map(bin,bytearray(msg))
-    #bin_key = map(bin,bytearray(key2))
 
+    z = 0
+    for bit_msg in (list(bin_msg)):
+        z += 1
+
+    while len(key_tmp) <= z:
+        key_tmp += key
+    key_tmp += key
+    #print("len_key ", len(key_tmp))
+    bin_key = map(bin,bytearray(key_tmp))
     bin_key = list(bin_key)
+
+    #print("key",key_tmp)
+    bin_msg = map(bin,bytearray(msg))
+
     i = 0
     for bit_msg in list(bin_msg):
-        #bit_msg = int(bit_msg, base=2)
-        #bit_key = int(bin_key[i], base=2)
+        #print("bit")
         bit_msg = int(bit_msg)
         bit_key = int(bin_key[i])
         tmp = bit_msg ^ bit_key
+
         result += chr(tmp)
         i += 1
     return result
@@ -98,10 +101,12 @@ while True:
     elif receivedMsg:
         p_msg = parse(receivedMsg)
         
+        #réception de la clée et envoie d'un acquitement
         if p_msg.type == "key":
             key = p_msg.msg
             radio.send("keyOK")
         
+        #réception du channel chiffré et envoi d'un acquitement chiffré
         if p_msg.type == "ch1":
             r_msg = decrypt(p_msg.msg)
 
@@ -116,6 +121,7 @@ while True:
             #radio.config(channel=int_msg)
             microbit.display.scroll("channel Ok", wait=False, loop=False)
         
+        #réception de l'acquitement chiffré de la connexion établie
         if p_msg.type == "ch2":
             microbit.display.scroll("ch2", wait=False, loop=False)
             msg_r = decrypt(p_msg.msg)
@@ -123,11 +129,12 @@ while True:
                 connect = True
                 microbit.display.scroll(msg_r, wait=False, loop=False)
         
+        #Si connexion établie, envoie des messages par UART
         if p_msg.type == "msg" and connect == True:
             microbit.display.scroll("UART Recieve", wait=False, loop=False)
-            #msg_r = decrypt(p_msg.msg)
-            #uart_write_request(msg_r)
-            uart_write_request(p_msg.msg)
+            msg_r = decrypt(p_msg.msg)
+            uart_write_request(msg_r)
+            #uart_write_request(p_msg.msg)
             microbit.display.scroll("UART Send", wait=False, loop=False)
 
 
